@@ -28,4 +28,16 @@ browser to use the application.
 This application receives CSV data files over its web interface, and then cleans
 data in those files using `growthcleanr`'s `cleangrowth()` function. With a
 data file in the [format specified by growthcleanr](https://github.com/carriedaymont/growthcleanr#data-preparation), use the app's Upload function
-to post your file to 
+to post your CSV file, and click "Refresh this page" until you see your that result
+dataset is done. Click the result file to download!
+
+Note that the result files will have the word "cleaned" and a date/time
+prepended. This helps to avoid name conflicts if two files with the same name
+are uploaded.
+
+
+## Notice
+
+Copyright 2020 The MITRE Corporation.
+
+Approved for Public Release; Distribution Unlimited. Case Number 19-2008

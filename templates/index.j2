@@ -19,8 +19,6 @@
 
 <div class="row">
     <div class="col-6 mt-4 ml-4">
-        <h1>How to clean data</h1>
-
         <p>
         Growthcleanr will perform a per-subject, longitudinal analysis of all available
         records and assess whether each individual height or weight measurement should
@@ -31,7 +29,17 @@
 
         <p>
         After you upload your data, growthcleanr will begin processing. This can take a minute or two for
-        a few thousand records, and ten minutes or longer for 
+        a few thousand records, and ten minutes or longer for tens of thousands of records or more. Click
+        the "Refresh this page" button below check for updates - your file should show as "Done", with a link
+        to download the results.
+        </p>
+        
+        <p>
+        This will work best if you upload one file at a time, then wait for it to finish cleaning
+        before starting to upload another dataset. You can upload the same file more than once,
+        but if you don't change it from one upload to the next, you will most likely get the same
+        results back for the same input dataset each time.
+        </p>
     </div>
 </div>
 
@@ -44,7 +52,7 @@
                     <input type="file" class="custom-file-input" id="inputGroupFile" name="file">
                     <label class="custom-file-label" for="inputGroupFile" aria-describedby="inputGroupFileAddon">Choose file</label>
                 </div>
-                <button type="submit" class="btn btn-outline-secondary">Upload</button>
+                <button type="submit" class="btn btn-outline-primary">Upload</button>
             </div>
         </form>
     </div>
@@ -68,22 +76,35 @@
         <table class="table table-hover">
             <thead>
                 <tr>
-                    <th scope="col">Dataset</th>
-                    <th scope="col">Status</th>
-                    <th scope="col">Result</th>
+                    <th class="col-2" scope="col">Upload date (GMT)</th>
+                    <th class="col-3" scope="col">Dataset</th>
+                    <th class="col-1" scope="col">Status</th>
+                    <th class="col-3" scope="col">Result</th>
                 </tr>
             </thead>
             <tbody>
+                {% for d in datasets %}
                 <tr>
-                    <td>datafile1.csv</td>
-                    <td><span class="badge badge-success">Done</span>
-                    <td><a href="#">cleaned-datafile1.csv</a></td>
+                    <td>{{ d.dt }}</td>
+                    <td>{{ d.fname }}</td>
+                    <td>
+                        {% if d.status == 'Pending' %}
+                            <span class="badge badge-primary"><em>Pending</em></span> 
+                        {% elif d.status == 'Done' %}
+                            <span class="badge badge-success">Done</span>
+                        {% endif %}
+                    </td>
+                    <td>
+                        {% if d.status == 'Done' %}
+                        <a href="{{ url_for('cleaned_file', cleaned_fname=d.cleaned_fname) }}">{{ d.fname }}</a>
+                        {% elif d.status == 'Pending' %}
+                        <em>Pending</em>
+                        {% else %}
+                        -
+                        {% endif %}
+                    </td>
                 </tr>
-                <tr>
-                    <td>datafile2.csv</td>
-                    <td><span class="badge badge-primary">Pending</span>
-                    <td><em>Pending</em></td>
-                </tr>
+                {% endfor %}
             </tbody>
         </table>
     </div>
