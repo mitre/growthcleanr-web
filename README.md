@@ -17,10 +17,10 @@ To run the webapp using Docker, run the image directly, specifying a port
 mapping:
 
 ```bash
-% docker run -it -p 8888:8888 growthcleanr-web:latest 
+% docker run -it -p 5000:5000 dchud/growthcleanr-web:latest 
 ```
 
-After the image is downloaded and run, visit http://localhost:8888/ in any
+After the image is downloaded and run, visit http://localhost:5000/ in any
 browser to use the application.
 
 ## Usage
