@@ -76,17 +76,17 @@
         <table class="table table-hover">
             <thead>
                 <tr>
-                    <th class="col-2" scope="col">Upload date (GMT)</th>
-                    <th class="col-3" scope="col">Dataset</th>
-                    <th class="col-1" scope="col">Status</th>
-                    <th class="col-3" scope="col">Result</th>
+                    <th class="w-30 text-left" scope="col">Upload date (GMT)</th>
+                    <th class="w-30 text-left" scope="col">Dataset</th>
+                    <th class="w-10 text-left" scope="col">Status</th>
+                    <th class="w-30 text-left" scope="col">Result</th>
                 </tr>
             </thead>
             <tbody>
                 {% for d in datasets %}
                 <tr>
                     <td>{{ d.dt }}</td>
-                    <td>{{ d.fname }}</td>
+                    <td class="text-nowrap">{{ d.fname }}</td>
                     <td>
                         {% if d.status == 'Pending' %}
                             <span class="badge badge-primary"><em>Pending</em></span> 
@@ -94,7 +94,7 @@
                             <span class="badge badge-success">Done</span>
                         {% endif %}
                     </td>
-                    <td>
+                    <td class="text-nowrap">
                         {% if d.status == 'Done' %}
                         <a href="{{ url_for('cleaned_file', cleaned_fname=d.cleaned_fname) }}">{{ d.fname }}</a>
                         {% elif d.status == 'Pending' %}
