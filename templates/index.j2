@@ -1,0 +1,103 @@
+{% extends "base.j2" %}
+
+{% block content %}
+
+{% with flashes = get_flashed_messages() %}
+    {% if flashes %}
+<div class="row">
+    <div class="col-8 mt-4 ml-4">
+        {% for flash in flashes %}
+        <div class="alert alert-secondary" role="alert">
+            {{ flash }}
+        </div>
+        {% endfor %}
+        </ul>
+    </div>
+</div>
+    {% endif %}
+{% endwith %}
+
+<div class="row">
+    <div class="col-6 mt-4 ml-4">
+        <h1>How to clean data</h1>
+
+        <p>
+        Growthcleanr will perform a per-subject, longitudinal analysis of all available
+        records and assess whether each individual height or weight measurement should
+        be included or excluded, with a variety of reasons for exclusion. To get started,
+        upload a dataset that follows the <a target="_blank" rel="noopener noreferrer" href="https://github.com/carriedaymont/growthcleanr#data-preparation">format
+        specified by growthcleanr</a>. It should have a <strong>name ending in ".csv"</strong>.
+        </p>
+
+        <p>
+        After you upload your data, growthcleanr will begin processing. This can take a minute or two for
+        a few thousand records, and ten minutes or longer for 
+    </div>
+</div>
+
+<div class="row">
+    <div class="col-4 mt-4 ml-4">
+        <h2>Upload your data</h2>
+        <form action="{{ url_for('upload') }}" method="POST" enctype="multipart/form-data">
+            <div class="input-group mb-3">
+                <div class="custom-file">
+                    <input type="file" class="custom-file-input" id="inputGroupFile" name="file">
+                    <label class="custom-file-label" for="inputGroupFile" aria-describedby="inputGroupFileAddon">Choose file</label>
+                </div>
+                <button type="submit" class="btn btn-outline-secondary">Upload</button>
+            </div>
+        </form>
+    </div>
+
+    <div class="col-4 mt-4 ml-4">
+        <h3>Refresh this page</h3>
+
+        <p>
+        growthcleanr can take some time to process. The table below will be updated
+        when a dataset is cleaned, but you may need to refresh this page to see the
+        update.
+        </p>
+
+        <button type="button" class="btn btn-lg btn-outline-secondary"><a href="{{ url_for('index') }}">Refresh this page</a></button>
+    </div>
+</div>
+
+<div class="row">
+    <div class="col-8 mt-2 ml-4">
+        <h2>Your datasets</h2>
+        <table class="table table-hover">
+            <thead>
+                <tr>
+                    <th scope="col">Dataset</th>
+                    <th scope="col">Status</th>
+                    <th scope="col">Result</th>
+                </tr>
+            </thead>
+            <tbody>
+                <tr>
+                    <td>datafile1.csv</td>
+                    <td><span class="badge badge-success">Done</span>
+                    <td><a href="#">cleaned-datafile1.csv</a></td>
+                </tr>
+                <tr>
+                    <td>datafile2.csv</td>
+                    <td><span class="badge badge-primary">Pending</span>
+                    <td><em>Pending</em></td>
+                </tr>
+            </tbody>
+        </table>
+    </div>
+
+</div>
+
+{% endblock content %}
+
+{% block script_extra %}
+<script>
+    $('#inputGroupFile').on('change',function(){
+        var fname = $(this).val();
+        fname = fname.replace("C:\\fakepath\\", "");
+        $(this).next('.custom-file-label').html(fname);
+    })
+</script>
+{% endblock %}

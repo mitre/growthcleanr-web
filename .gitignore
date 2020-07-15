@@ -141,3 +141,7 @@ cython_debug/
 *.swo
 .DS_Store
 .python-version
+.vscode
+datasets
+status
+results
