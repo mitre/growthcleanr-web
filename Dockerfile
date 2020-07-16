@@ -1,4 +1,4 @@
-FROM dchud/growthcleanr:latest
+FROM mitre/growthcleanr:latest
 
 MAINTAINER Daniel Chudnov "dlchudnov@mitre.org"
 

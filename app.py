@@ -31,8 +31,8 @@ ALLOWED_EXTENSIONS = {"csv"}
 DT_FORMAT = "%Y%m%dT%H%M%SZ"
 
 app = Flask(__name__)
-app.config["DATASET_DIR"] = DATASET_DIR
 app.secret_key = SECRET_KEY
+app.config["DATASET_DIR"] = DATASET_DIR
 
 
 def allowed_file(fname):
@@ -46,7 +46,7 @@ def utcnow():
 
 
 def read_state():
-    """Examine the working directories for available datasets, process status, 
+    """Examine the working directories for available datasets, process status,
     and results. Clean up as needed."""
     datasets = {}
     # Build a dataset list from DATASET_DIR
@@ -116,8 +116,6 @@ def upload():
         flash("No dataset part found")
         return redirect(request.url)
     file = request.files["file"]
-    # if user does not select file, browser also
-    # submit an empty part without filename
     if file.filename == "":
         flash("No dataset selected")
     if file:
@@ -153,4 +151,4 @@ if __name__ == "__main__":
     Path(DATASET_DIR).mkdir(parents=True, exist_ok=True)
     Path(STATUS_DIR).mkdir(parents=True, exist_ok=True)
     Path(RESULT_DIR).mkdir(parents=True, exist_ok=True)
-    app.run(debug=True, host="0.0.0.0")
+    app.run(debug=False, host="0.0.0.0")
