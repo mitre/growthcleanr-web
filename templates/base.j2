@@ -3,41 +3,61 @@
     <head>
         <title>growthcleanr</title>
         <!-- Bootstrap -->
-        <link rel="stylesheet" 
-            href="https://stackpath.bootstrapcdn.com/bootstrap/4.5.0/css/bootstrap.min.css" 
-            integrity="sha384-9aIt2nRpC12Uk9gS9baDl411NQApFmC26EwAOH8WgZl5MYYxFfc+NcPb1dKGj7Sk" 
+        <link rel="stylesheet"
+            href="https://stackpath.bootstrapcdn.com/bootstrap/4.5.0/css/bootstrap.min.css"
+            integrity="sha384-9aIt2nRpC12Uk9gS9baDl411NQApFmC26EwAOH8WgZl5MYYxFfc+NcPb1dKGj7Sk"
             crossorigin="anonymous">
         <!-- Bootswatch "flatly" theme -->
-        <link rel="stylesheet" 
-            href="https://stackpath.bootstrapcdn.com/bootswatch/4.5.0/flatly/bootstrap.min.css" 
-            integrity="sha384-mhpbKVUOPCSocLzx2ElRISIORFRwr1ZbO9bAlowgM5kO7hnpRBe+brVj8NNPUiFs" 
+        <link rel="stylesheet"
+            href="https://stackpath.bootstrapcdn.com/bootswatch/4.5.0/flatly/bootstrap.min.css"
+            integrity="sha384-mhpbKVUOPCSocLzx2ElRISIORFRwr1ZbO9bAlowgM5kO7hnpRBe+brVj8NNPUiFs"
             crossorigin="anonymous">
+        <style>
+            .footer {
+                background-color: #f2f2f2;
+            }
+        </style>
         {% block styles_extra %}
         {% endblock %}
     </head>
-    <body>
+    <body class="d-flex flex-column">
         <!-- avoid Firefox-specific flash of unstyled content -->
         <script>0</script>
 
-        <nav class="navbar navbar-light bg-light">
-            <span class="navbar-brand mb-0 h1">growthcleanr</span>
-        </nav>
+        <header>
+            <nav class="navbar navbar-light bg-light">
+                <span class="navbar-brand mb-0 h1">growthcleanr</span>
+            </nav>
+        </header>
 
-        <div class="container-fluid">
-            {% block content %}
-            {% endblock content %}
-        </div>
+        <main class="flex-shrink-0" role="main">
+            <div class="container-fluid">
+                {% block content %}
+                {% endblock content %}
+            </div>
+        </main>
+
+        <footer class="footer fixed-bottom mt-auto py-3">
+            <div class="container-fluid text-muted text-left ml-3">
+                <a href="https://github.com/mitre/growthcleanr-web/">growthcleanr-web</a>
+                &middot;
+                Copyright &copy; 2020 The MITRE Corporation
+                &middot;
+                {% include "date.txt" ignore missing %}
+            </div>
+        </footer>
 
     </body>
 
+
     <!-- JQuery -->
-    <script src="https://code.jquery.com/jquery-3.5.1.slim.min.js" 
-        integrity="sha256-4+XzXVhsDmqanXGHaHvgh1gMQKX40OUvDEBTu8JcmNs=" 
+    <script src="https://code.jquery.com/jquery-3.5.1.slim.min.js"
+        integrity="sha256-4+XzXVhsDmqanXGHaHvgh1gMQKX40OUvDEBTu8JcmNs="
         crossorigin="anonymous">
     </script>
     <!-- Bootstrap -->
-    <script src="https://stackpath.bootstrapcdn.com/bootstrap/4.5.0/js/bootstrap.min.js" 
-        integrity="sha384-OgVRvuATP1z7JjHLkuOU7Xw704+h835Lr+6QL9UvYjZE3Ipu6Tp75j7Bh/kR0JKI" 
+    <script src="https://stackpath.bootstrapcdn.com/bootstrap/4.5.0/js/bootstrap.min.js"
+        integrity="sha384-OgVRvuATP1z7JjHLkuOU7Xw704+h835Lr+6QL9UvYjZE3Ipu6Tp75j7Bh/kR0JKI"
         crossorigin="anonymous">
     </script>
     {% block script_extra %}
