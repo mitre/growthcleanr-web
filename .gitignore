@@ -143,5 +143,5 @@ cython_debug/
 .python-version
 .vscode
 dataset
-status
 result
+*.db
