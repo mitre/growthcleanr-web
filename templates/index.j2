@@ -33,7 +33,7 @@
         the "Refresh this page" button below check for updates - your file should show as "Done", with a link
         to download the results.
         </p>
-        
+
         <p>
         This will work best if you upload one file at a time, then wait for it to finish cleaning
         before starting to upload another dataset. You can upload the same file more than once,
@@ -44,15 +44,85 @@
 </div>
 
 <div class="row">
-    <div class="col-4 mt-4 ml-4">
-        <h2>Upload your data</h2>
+    <div class="col-4 mt-4 ml-4 border rounded">
+        <h2>Clean your data</h2>
         <form action="{{ url_for('upload') }}" method="POST" enctype="multipart/form-data">
             <div class="input-group mb-3">
                 <div class="custom-file">
                     <input type="file" class="custom-file-input" id="inputGroupFile" name="file">
                     <label class="custom-file-label" for="inputGroupFile" aria-describedby="inputGroupFileAddon">Choose file</label>
                 </div>
-                <button type="submit" class="btn btn-outline-primary">Upload</button>
+            </div>
+
+            <div class="m-2 p-2 border rounded">
+                <h4>Calculate BMI?</h4>
+                <p>
+                By default, growthcleanr will determine per-measurement inclusions/exclusions.
+                Choose "Yes" to calculate BMI values as well.
+                </p>
+                <div class="input-group" id="calculate-bmi">
+                    <div class="form-check form-check-inline">
+                        <input class="form-check-input" type="radio" name="calculate-bmi" id="calculate-bmi-yes" value="yes">
+                        <label class="form-check-label" for="calculate-bmi-yes">
+                            Yes
+                        </label>
+                    </div>
+                    <div class="form-check form-check-inline">
+                        <input class="form-check-input" type="radio" name="calculate-bmi" id="calculate-bmi-no" value="no" checked="checked">
+                        <label class="form-check-label" for="calculate-bmi-no">
+                            No
+                        </label>
+                    </div>
+                </div>
+
+                <div id="bmi-options" class="input-group m-2 p-2">
+                    <h5>Choose measurements for BMI calculation</h5>
+                    <div class="form-check">
+                        <input class="form-check-input" type="radio" name="bmi-radio" id="bmi-include" value="include" checked>
+                        <label class="form-check-label" for="bmi-include">
+                            Calculate only for measurements marked for inclusion
+                        </label>
+                    </div>
+                    <div class="form-check">
+                        <input class="form-check-input" type="radio" name="bmi-radio" id="bmi-all" value="all">
+                        <label class="form-check-label" for="bmi-all">
+                            Calculate for all measurements
+                        </label>
+                    </div>
+                    <div class="form-check">
+                        <input class="form-check-input" type="radio" name="bmi-radio" id="bmi-choose" value="choose">
+                        <label class="form-check-label" for="bmi-choose">
+                            Select which measurements to include in BMI calculation
+                        </label>
+
+                        <div id="exclusion-options" class="form-check m-2 p-2 border rounded">
+                            <div class="form-check">
+                                <input class="form-check-input" type="checkbox" id="check-include" value="Include" checked>
+                                <label class="form-check-label" for="check-include">Include</label>
+                            </div>
+
+                            <div class="form-check">
+                                <input class="form-check-input" type="checkbox" id="check-exclude-duplicate" value="Exclude-Duplicate">
+                                <label class="form-check-label" for="check-exclude-duplicate">Exclude-Duplicate</label>
+                            </div>
+
+                            <div class="form-check">
+                                <input class="form-check-input" type="checkbox" id="check-exclude-carried-forward" value="Exclude-Carried-Forward">
+                                <label class="form-check-label" for="check-exclude-carried-forward">Exclude-Carried-Forward</label>
+                            </div>
+
+                            <div class="form-check">
+                                <input class="form-check-input" type="checkbox" id="check-exclude-sd-cutoff" value="Exclude-SD-Cutoff">
+                                <label class="form-check-label" for="check-exclude-sd-cutoff">Exclude-SD-Cutoff</label>
+                            </div>
+
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="input-group m-3">
+                <button type="submit" class="btn btn-outline-primary">Upload your data</button>
             </div>
         </form>
     </div>
@@ -79,7 +149,7 @@
                     <th class="w-30 text-left" scope="col">Upload date (GMT)</th>
                     <th class="w-30 text-left" scope="col">Dataset</th>
                     <th class="w-10 text-left" scope="col">Status</th>
-                    <th class="w-30 text-left" scope="col">Result</th>
+                    <th class="w-30 text-left" scope="col">Results</th>
                 </tr>
             </thead>
             <tbody>
@@ -88,19 +158,21 @@
                     <td>{{ d.dt }}</td>
                     <td class="text-nowrap">{{ d.fname }}</td>
                     <td>
-                        {% if d.status == 'Pending' %}
-                            <span class="badge badge-primary"><em>Pending</em></span> 
-                        {% elif d.status == 'Done' %}
+                        {% if d.cleaned_fname == '' or
+                              d.bmi_fname == '' %}
+                            <span class="badge badge-primary"><em>Pending</em></span>
+                        {% else %}
                             <span class="badge badge-success">Done</span>
                         {% endif %}
                     </td>
                     <td class="text-nowrap">
-                        {% if d.status == 'Done' %}
-                        <a href="{{ url_for('cleaned_file', cleaned_fname=d.cleaned_fname) }}">{{ d.fname }}</a>
-                        {% elif d.status == 'Pending' %}
-                        <em>Pending</em>
-                        {% else %}
-                        -
+                        {% if d.cleaned_fname != '' %}
+                        <a href="{{ url_for('cleaned_file', cleaned_fname=d.cleaned_fname) }}">{{ d.cleaned_fname[17:] }}</a>
+                        {% endif %}
+
+                        {% if d.bmi_fname and d.bmi_fname != '' %}
+                        |
+                        <a href="{{ url_for('cleaned_file', cleaned_fname=d.bmi_fname) }}">{{ d.bmi_fname[17:] }}</a>
                         {% endif %}
                     </td>
                 </tr>
@@ -115,10 +187,40 @@
 
 {% block script_extra %}
 <script>
-    $('#inputGroupFile').on('change',function(){
+$(document).ready(function(){
+    $('#inputGroupFile').on('change', function() {
         var fname = $(this).val();
         fname = fname.replace("C:\\fakepath\\", "");
         $(this).next('.custom-file-label').html(fname);
+    });
+
+    $('input[type=radio][name=calculate-bmi]').change(function () {
+        if (this.value == 'yes') {
+            $('#bmi-options').show('fast');
+        } else {
+            $('#bmi-options').hide('fast');
+        }
+    });
+
+    $('input[type=radio][name=bmi-radio]').change(function () {
+        if (this.value == 'choose') {
+            $('#exclusion-options').show();
+        } else {
+            $('#exclusion-options').hide();
+        }
     })
+});
 </script>
+{% endblock %}
+
+{% block style_extra %}
+<style>
+#inputGroupFile .label {
+    color: #333333;
+}
+
+#bmi-options, #exclusion-options {
+    display: none;
+}
+</style>
 {% endblock %}

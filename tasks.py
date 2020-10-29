@@ -12,7 +12,7 @@ RESULT_DIR = "result"
 @huey_queue.task()
 def r_cleangrowth(fname, options={}):
     dataset_fname = Path(DATASET_DIR) / fname
-    result_fname = Path(RESULT_DIR) / f"{str(fname)[:-4]}-cleaned.csv"
+    result_fname = str(Path(RESULT_DIR) / f"{str(fname)[:-4]}-cleaned.csv")
     robjects.r(f"""
        library(data.table)
        library(growthcleanr)
@@ -28,6 +28,7 @@ def r_cleangrowth(fname, options={}):
 def r_longwide(fname, options={}):
     # Note: will already have "RESULT_DIR/" prepended
     result_fname = f"{str(fname)[:-4]}-wide.csv"
+    # TODO: pass in exclusion options correctly
     robjects.r(f"""
         library(data.table)
         library(growthcleanr)

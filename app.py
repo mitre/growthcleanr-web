@@ -32,6 +32,7 @@ DT_FORMAT = "%Y%m%dT%H%M%SZ"
 app = Flask(__name__)
 app.secret_key = SECRET_KEY
 app.config["DATASET_DIR"] = DATASET_DIR
+app.config["DEBUG"] = os.environ.get("FLASK_DEBUG", False)
 
 jobs = {}
 
@@ -49,25 +50,39 @@ def utcnow():
 def read_state():
     """Examine the working directories for available datasets, process status,
     and results. Clean up as needed."""
-    # FIXME: Refactor to read state of jobs object from queue
     datasets = {}
-    # Build a dataset list from DATASET_DIR
-    for dataset in [ds for ds in os.listdir(DATASET_DIR) if ds.startswith("20")]:
-        dt = datetime.datetime.strptime(dataset[:16], DT_FORMAT)
-        fname = dataset[17:]
-        datasets[dataset] = {
-            "dated_fname": dataset,
+    for job in jobs.keys():
+        dt = datetime.datetime.strptime(job[:16], DT_FORMAT)
+        fname = job[17:]
+        status = jobs[job].get()
+        datasets[job] = {
+            "dated_fname": job,
             "fname": fname,
             "dt": dt.strftime("%Y-%m-%d %H:%M:%S"),
+            "status": status
         }
-
-    # Build result file list, format = "cleaned-datetime-origname.csv"
-    for result in os.listdir(RESULT_DIR):
-        dataset_fname = result[8:]
-        dataset = datasets[dataset_fname]
-        dataset["cleaned_fname"] = result
-        # Handle completed files
-        dataset["status"] = "Done"
+        if type(status) == type([]):
+            # This was a pipeline w/bmi
+            if status[0] is None:
+                # cleaning is not yet done
+                datasets[job]["cleaned_fname"] = ""
+            else:
+                # cleaning is done
+                # "dt-", 1 to remove the slash
+                # TODO: does pathlib make this simpler?
+                cleaned_fname = str(status[0])[len(RESULT_DIR) + 1:]
+                datasets[job]["cleaned_fname"] = cleaned_fname
+            if status[2] is None:
+                # bmi is not yet done
+                datasets[job]["bmi_fname"] = ""
+            else:
+                # bmi is done
+                bmi_fname = str(status[2])[len(RESULT_DIR) + 1:]
+                datasets[job]["bmi_fname"] = bmi_fname
+        else:
+            # Not a pipeline, just cleaning
+            cleaned_fname = str(status)[len(RESULT_DIR) + 1:]
+            datasets[job]["cleaned_fname"] = cleaned_fname
 
     # Return files w/status, associated results ordered by date/time
     return datasets
@@ -97,13 +112,17 @@ def upload():
             file.save(Path(app.config["DATASET_DIR"]) / dated_fname)
             flash("Dataset uploaded successfully.")
 
-            # Start a queue pipeline
-            pipeline = (r_cleangrowth.s(dated_fname)
-                .then(r_longwide)
-                .then(r_ext_bmiz)
-            )
+            if request.form.get('calculate-bmi', 'no') == 'yes':
+                # Start a queue pipeline
+                # TODO: Handle options from form
+                pipeline = (r_cleangrowth.s(dated_fname)
+                            .then(r_longwide)  # options here
+                            .then(r_ext_bmiz))
+            else:
+                # Does not require a pipeline, but use one for consistency
+                # of result
+                pipeline = r_cleangrowth.s(dated_fname)
             jobs[dated_fname] = huey_queue.enqueue(pipeline)
-            # TODO: options? bmi?
         else:
             flash("Dataset name should end in '.csv'")
     return redirect(url_for("index"))
@@ -124,5 +143,4 @@ if __name__ == "__main__":
     cmd = ["huey_consumer", "tasks.huey_queue", "-w", "2"]
     # TODO: clean up properly on exit
     proc = subprocess.Popen(cmd)
-    # TODO: properly configurable debug
-    app.run(debug=False, host="0.0.0.0")
+    app.run(debug=app.config["DEBUG"], host="0.0.0.0")
