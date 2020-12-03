@@ -59,7 +59,7 @@ def read_state():
             "dated_fname": job,
             "fname": fname,
             "dt": dt.strftime("%Y-%m-%d %H:%M:%S"),
-            "status": status
+            "status": status,
         }
         if type(status) == type([]):
             # This was a pipeline w/bmi
@@ -70,18 +70,19 @@ def read_state():
                 # cleaning is done
                 # "dt-", 1 to remove the slash
                 # TODO: does pathlib make this simpler?
-                cleaned_fname = str(status[0])[len(RESULT_DIR) + 1:]
+                cleaned_fname = str(status[0])[len(RESULT_DIR) + 1 :]
                 datasets[job]["cleaned_fname"] = cleaned_fname
             if status[2] is None:
                 # bmi is not yet done
                 datasets[job]["bmi_fname"] = ""
             else:
                 # bmi is done
-                bmi_fname = str(status[2])[len(RESULT_DIR) + 1:]
+                bmi_fname = str(status[2])[len(RESULT_DIR) + 1 :]
                 datasets[job]["bmi_fname"] = bmi_fname
         else:
             # Not a pipeline, just cleaning
-            cleaned_fname = str(status)[len(RESULT_DIR) + 1:]
+            # TODO: verify, can this happen?
+            cleaned_fname = str(status)[len(RESULT_DIR) + 1 :]
             datasets[job]["cleaned_fname"] = cleaned_fname
 
     # Return files w/status, associated results ordered by date/time
@@ -112,12 +113,38 @@ def upload():
             file.save(Path(app.config["DATASET_DIR"]) / dated_fname)
             flash("Dataset uploaded successfully.")
 
-            if request.form.get('calculate-bmi', 'no') == 'yes':
+            if request.form.get("calculate-bmi", "no") == "yes":
+                options = {}
+                bmi_radio = request.form.get("bmi-radio", "include")
+                if bmi_radio == "include":
+                    # no further options to handle, use default longwide()
+                    pass
+                elif bmi_radio == "all":
+                    options["include_all"] = True
+                elif bmi_radio == "choose":
+                    inclusion_types = []
+                    for t in [
+                        "Include",
+                        "Exclude-Carried-Forward",
+                        "Exclude-Duplicate",
+                        "Exclude-EWMA-Extreme",
+                        "Exclude-SD-Cutoff",
+                        "Exclude-Too-Many-Errors",
+                        "Exclude-Min-Height-Change",
+                        "Exclude-Max-Height-Change",
+                        "Exclude-Min-Weight-Change",
+                        "Exclude-Max-Weight-Change",
+                    ]:
+                        if request.form.get(t, None):
+                            inclusion_types.append(t)
+                    options["inclusion_types"] = inclusion_types
+
                 # Start a queue pipeline
-                # TODO: Handle options from form
-                pipeline = (r_cleangrowth.s(dated_fname)
-                            .then(r_longwide)  # options here
-                            .then(r_ext_bmiz))
+                pipeline = (
+                    r_cleangrowth.s(dated_fname)
+                    .then(r_longwide, options=options)
+                    .then(r_ext_bmiz)
+                )
             else:
                 # Does not require a pipeline, but use one for consistency
                 # of result

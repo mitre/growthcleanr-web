@@ -145,3 +145,4 @@ cython_debug/
 dataset
 result
 *.db
+*.db-*
