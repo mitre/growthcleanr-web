@@ -127,8 +127,6 @@ def upload():
                         "Include",
                         "Exclude-Carried-Forward",
                         "Exclude-Duplicate",
-                        "Exclude-EWMA-Extreme",
-                        "Exclude-SD-Cutoff",
                         "Exclude-Too-Many-Errors",
                         "Exclude-Min-Height-Change",
                         "Exclude-Max-Height-Change",
