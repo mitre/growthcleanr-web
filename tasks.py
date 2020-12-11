@@ -13,13 +13,38 @@ RESULT_DIR = "result"
 def r_cleangrowth(fname, options={}):
     dataset_fname = Path(DATASET_DIR) / fname
     result_fname = str(Path(RESULT_DIR) / f"{str(fname)[:-4]}-cleaned.csv")
+
+    # Handle cleangrowth() options
+    include_carryforward = ""
+    if options.get("include-carryforward", False):
+        include_carryforward = ", include.carryforward=TRUE"
+
+    recover_unit_error = ""
+    if options.get("recover-unit-error", False):
+        recover_unit_error = ", recover.unit.error=TRUE"
+
+    save_medians = ""
+    if options.get("save-medians", False):
+        sdmedian_fname = str(Path(RESULT_DIR) / f"{str(fname)[:-4]}-medians.csv")
+        save_medians = f", sdmedian.filename='{sdmedian_fname}'"
+
+    save_recenter = ""
+    if options.get("save-recenter", False):
+        sdrecenter_fname = str(Path(RESULT_DIR) / f"{str(fname)[:-4]}-recenter.csv")
+        save_recenter = f", sdrecentered.filename='{sdrecenter_fname}'"
+
     robjects.r(
         f"""
         library(data.table)
         library(growthcleanr)
         d <- fread("{str(dataset_fname)}")
         setkey(d, subjid, param, agedays)
-        d[, clean_value:=cleangrowth(subjid, param, agedays, sex, measurement)]
+        d[, clean_value:=cleangrowth(subjid, param, agedays, sex, measurement
+            {include_carryforward}
+            {recover_unit_error}
+            {save_medians}
+            {save_recenter}
+        )]
         fwrite(d, "{str(result_fname)}")
         """
     )

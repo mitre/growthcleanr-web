@@ -1,6 +1,9 @@
 #!/usr/bin/env python3
 
 import datetime
+import glob
+import logging
+from logging.handlers import RotatingFileHandler
 import os
 from pathlib import Path
 import subprocess
@@ -19,6 +22,8 @@ from werkzeug.utils import secure_filename
 from queue import huey_queue
 from tasks import r_cleangrowth, r_longwide, r_ext_bmiz
 
+
+logging.basicConfig(level=logging.DEBUG)
 
 # Each execution of each instance will get its own new key
 SECRET_KEY = os.urandom(16)
@@ -72,6 +77,7 @@ def read_state():
                 # TODO: does pathlib make this simpler?
                 cleaned_fname = str(status[0])[len(RESULT_DIR) + 1 :]
                 datasets[job]["cleaned_fname"] = cleaned_fname
+
             if status[2] is None:
                 # bmi is not yet done
                 datasets[job]["bmi_fname"] = ""
@@ -84,6 +90,21 @@ def read_state():
             # TODO: verify, can this happen?
             cleaned_fname = str(status)[len(RESULT_DIR) + 1 :]
             datasets[job]["cleaned_fname"] = cleaned_fname
+
+        # Check for additional files whether it was a pipeline or not
+        # TODO: not particularly elegant
+        # 12 for "-cleaned.csv"
+        if datasets[job]["cleaned_fname"] != "":
+            base_fname = cleaned_fname[:-12]
+            extra_files = glob.glob(str(Path(RESULT_DIR) / f"{base_fname}-*.csv"))
+            datasets[job]['extra_files'] = extra_files
+            for extra_file in extra_files:
+                if extra_file.endswith('-medians.csv'):
+                    medians_fname = f"{base_fname}-medians.csv"
+                    datasets[job]["medians_fname"] = medians_fname
+                elif extra_file.endswith('-recenter.csv'):
+                    recenter_fname = f"{base_fname}-recenter.csv"
+                    datasets[job]["recenter_fname"] = recenter_fname
 
     # Return files w/status, associated results ordered by date/time
     return datasets
@@ -113,14 +134,27 @@ def upload():
             file.save(Path(app.config["DATASET_DIR"]) / dated_fname)
             flash("Dataset uploaded successfully.")
 
+            cleangrowth_options = {}
+
+            for o in [
+                "include-carryforward",
+                "recover-unit-error",
+                "save-medians",
+                "save-recenter",
+            ]:
+                if request.form.get(o, None):
+                    cleangrowth_options[o] = True
+                else:
+                    cleangrowth_options[o] = False
+
             if request.form.get("calculate-bmi", "no") == "yes":
-                options = {}
+                bmi_options = {}
                 bmi_radio = request.form.get("bmi-radio", "include")
                 if bmi_radio == "include":
                     # no further options to handle, use default longwide()
                     pass
                 elif bmi_radio == "all":
-                    options["include_all"] = True
+                    bmi_options["include_all"] = True
                 elif bmi_radio == "choose":
                     inclusion_types = []
                     for t in [
@@ -135,18 +169,18 @@ def upload():
                     ]:
                         if request.form.get(t, None):
                             inclusion_types.append(t)
-                    options["inclusion_types"] = inclusion_types
+                    bmi_options["inclusion_types"] = inclusion_types
 
                 # Start a queue pipeline
                 pipeline = (
-                    r_cleangrowth.s(dated_fname)
-                    .then(r_longwide, options=options)
+                    r_cleangrowth.s(dated_fname, options=cleangrowth_options)
+                    .then(r_longwide, options=bmi_options)
                     .then(r_ext_bmiz)
                 )
             else:
                 # Does not require a pipeline, but use one for consistency
                 # of result
-                pipeline = r_cleangrowth.s(dated_fname)
+                pipeline = r_cleangrowth.s(dated_fname, options=cleangrowth_options)
             jobs[dated_fname] = huey_queue.enqueue(pipeline)
         else:
             flash("Dataset name should end in '.csv'")
@@ -159,6 +193,10 @@ def cleaned_file(cleaned_fname):
 
 
 if __name__ == "__main__":
+    handler = RotatingFileHandler('gcweb.log', maxBytes=100000, backupCount=1)
+    handler.setLevel(logging.INFO)
+    app.logger.addHandler(handler)
+
     # Initialize dirs if not yet present
     Path(DATASET_DIR).mkdir(parents=True, exist_ok=True)
     Path(RESULT_DIR).mkdir(parents=True, exist_ok=True)
