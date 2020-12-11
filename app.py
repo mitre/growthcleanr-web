@@ -12,8 +12,8 @@ from flask import (
     Flask,
     flash,
     redirect,
-    request,
     render_template,
+    request,
     send_from_directory,
     url_for,
 )
@@ -66,7 +66,7 @@ def read_state():
             "dt": dt.strftime("%Y-%m-%d %H:%M:%S"),
             "status": status,
         }
-        if type(status) == type([]):
+        if isinstance(status, list):
             # This was a pipeline w/bmi
             if status[0] is None:
                 # cleaning is not yet done
@@ -97,12 +97,12 @@ def read_state():
         if datasets[job]["cleaned_fname"] != "":
             base_fname = cleaned_fname[:-12]
             extra_files = glob.glob(str(Path(RESULT_DIR) / f"{base_fname}-*.csv"))
-            datasets[job]['extra_files'] = extra_files
+            datasets[job]["extra_files"] = extra_files
             for extra_file in extra_files:
-                if extra_file.endswith('-medians.csv'):
+                if extra_file.endswith("-medians.csv"):
                     medians_fname = f"{base_fname}-medians.csv"
                     datasets[job]["medians_fname"] = medians_fname
-                elif extra_file.endswith('-recenter.csv'):
+                elif extra_file.endswith("-recenter.csv"):
                     recenter_fname = f"{base_fname}-recenter.csv"
                     datasets[job]["recenter_fname"] = recenter_fname
 
@@ -193,7 +193,7 @@ def cleaned_file(cleaned_fname):
 
 
 if __name__ == "__main__":
-    handler = RotatingFileHandler('gcweb.log', maxBytes=100000, backupCount=1)
+    handler = RotatingFileHandler("gcweb.log", maxBytes=100000, backupCount=1)
     handler.setLevel(logging.INFO)
     app.logger.addHandler(handler)
 
