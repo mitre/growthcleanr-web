@@ -65,6 +65,24 @@
                             <input class="form-check-input" type="checkbox" id="check-recover-unit-error" name="recover-unit-error">
                             <label class="form-check-label" for="check-recover-unit-error">Recover unit errors</label>
                         </div>
+                        <div class="form-check pt-2">
+                            <label class="form-check-label" for="ewma-exp">EWMA exponent (default -1.5)</label>
+                            <input id="ewma-exp" data-slider-id="ewma-exp-slider" name="ewma-exp" type="text"
+                                data-slider-min="-3" data-slider-max="-1" data-slider-step="0.1" data-slider-value="-1.5"
+                                />
+                        </div>
+                        <div class="form-check pt-2">
+                            <label class="form-check-label" for="error-load-mincount">Error load mincount (default 2)</label>
+                            <input id="error-load-mincount" data-slider-id="error-load-mincount-slider" name="error-load-mincount" type="text"
+                                data-slider-min="1" data-slider-max="3" data-slider-step="1" data-slider-value="2"
+                                />
+                        </div>
+                        <div class="form-check pt-2">
+                            <label class="form-check-label" for="error-load-threshold">Error load threshold (default 0.5)</label>
+                            <input id="error-load-threshold" data-slider-id="error-load-threshold-slider" name="error-load-threshold" type="text"
+                                data-slider-min="0.2" data-slider-max="1" data-slider-step="0.1" data-slider-value="0.5"
+                                />
+                        </div>
                     </div>
 
                     <hr />
@@ -264,14 +282,32 @@
 {% block script_extra %}
 <script>
 $(document).ready(function(){
-    $('#toggle-cleangrowth-advanced-options').on('click', function() {
-        $('#cleangrowth-advanced-options').toggle('slow');
-    });
-
     $('#inputGroupFile').on('change', function() {
         var fname = $(this).val();
         fname = fname.replace("C:\\fakepath\\", "");
         $(this).next('.custom-file-label').html(fname);
+    });
+
+    $('#toggle-cleangrowth-advanced-options').on('click', function() {
+        $('#cleangrowth-advanced-options').toggle('slow');
+    });
+
+    $('#ewma-exp').slider({
+        formatter: function(value) {
+            return value;
+        }
+    });
+
+    $('#error-load-mincount').slider({
+        formatter: function(value) {
+            return value;
+        }
+    });
+
+    $('#error-load-threshold').slider({
+        formatter: function(value) {
+            return value;
+        }
     });
 
     $('input[type=radio][name=calculate-bmi]').change(function () {
@@ -296,11 +332,22 @@ $(document).ready(function(){
 {% block style_extra %}
 <style>
 #inputGroupFile {
-    color: #333333;
+    color: #333;
 }
 
 #cleangrowth-advanced-options, #bmi-options, #exclusion-options {
     display: none;
+}
+
+.slider-handle {
+	background-color: #aaa;
+    background-image: none;
+    width: 13px;
+}
+
+.slider-selection, .slider-track-low, .slider-track-high {
+    background: #eee;
+    box-shadow: none;
 }
 </style>
 {% endblock %}

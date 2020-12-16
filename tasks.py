@@ -33,6 +33,15 @@ def r_cleangrowth(fname, options={}):
         sdrecenter_fname = str(Path(RESULT_DIR) / f"{str(fname)[:-4]}-recenter.csv")
         save_recenter = f", sdrecentered.filename='{sdrecenter_fname}'"
 
+    ewma_exp_value = options.get("ewma-exp", -1.5)
+    ewma_exp = f", ewma.exp={ewma_exp_value}"
+
+    error_load_mincount_value = options.get("error-load-mincount-value", 2)
+    error_load_mincount = f", error.load.mincount={error_load_mincount_value}"
+
+    error_load_threshold_value = options.get("error-load-threshold-value", 0.5)
+    error_load_threshold = f", error.load.threshold={error_load_threshold_value}"
+
     robjects.r(
         f"""
         library(data.table)
@@ -44,6 +53,9 @@ def r_cleangrowth(fname, options={}):
             {recover_unit_error}
             {save_medians}
             {save_recenter}
+            {ewma_exp}
+            {error_load_mincount}
+            {error_load_threshold}
         )]
         fwrite(d, "{str(result_fname)}")
         """

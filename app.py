@@ -147,6 +147,13 @@ def upload():
                 else:
                     cleangrowth_options[o] = False
 
+            for o, v in [
+                ["ewma-exp", -1.5],
+                ["error-load-mincount", 2],
+                ["error-load-threshold", 0.5]
+            ]:
+                cleangrowth_options[o] = request.form.get(o, v)
+
             if request.form.get("calculate-bmi", "no") == "yes":
                 bmi_options = {}
                 bmi_radio = request.form.get("bmi-radio", "include")
