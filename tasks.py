@@ -13,13 +13,50 @@ RESULT_DIR = "result"
 def r_cleangrowth(fname, options={}):
     dataset_fname = Path(DATASET_DIR) / fname
     result_fname = str(Path(RESULT_DIR) / f"{str(fname)[:-4]}-cleaned.csv")
+
+    # Handle cleangrowth() options
+    include_carryforward = ""
+    if options.get("include-carryforward", False):
+        include_carryforward = ", include.carryforward=TRUE"
+
+    recover_unit_error = ""
+    if options.get("recover-unit-error", False):
+        recover_unit_error = ", recover.unit.error=TRUE"
+
+    save_medians = ""
+    if options.get("save-medians", False):
+        sdmedian_fname = str(Path(RESULT_DIR) / f"{str(fname)[:-4]}-medians.csv")
+        save_medians = f", sdmedian.filename='{sdmedian_fname}'"
+
+    save_recenter = ""
+    if options.get("save-recenter", False):
+        sdrecenter_fname = str(Path(RESULT_DIR) / f"{str(fname)[:-4]}-recenter.csv")
+        save_recenter = f", sdrecentered.filename='{sdrecenter_fname}'"
+
+    ewma_exp_value = options.get("ewma-exp", -1.5)
+    ewma_exp = f", ewma.exp={ewma_exp_value}"
+
+    error_load_mincount_value = options.get("error-load-mincount-value", 2)
+    error_load_mincount = f", error.load.mincount={error_load_mincount_value}"
+
+    error_load_threshold_value = options.get("error-load-threshold-value", 0.5)
+    error_load_threshold = f", error.load.threshold={error_load_threshold_value}"
+
     robjects.r(
         f"""
         library(data.table)
         library(growthcleanr)
         d <- fread("{str(dataset_fname)}")
         setkey(d, subjid, param, agedays)
-        d[, clean_value:=cleangrowth(subjid, param, agedays, sex, measurement)]
+        d[, clean_value:=cleangrowth(subjid, param, agedays, sex, measurement
+            {include_carryforward}
+            {recover_unit_error}
+            {save_medians}
+            {save_recenter}
+            {ewma_exp}
+            {error_load_mincount}
+            {error_load_threshold}
+        )]
         fwrite(d, "{str(result_fname)}")
         """
     )

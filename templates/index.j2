@@ -18,7 +18,7 @@
 {% endwith %}
 
 <div class="row">
-    <div class="col-6 mt-4 ml-4">
+    <div class="col-8 mt-4 ml-4">
         <p>
         Growthcleanr will perform a per-subject, longitudinal analysis of all available
         records and assess whether each individual height or weight measurement should
@@ -44,7 +44,7 @@
 </div>
 
 <div class="row">
-    <div class="col-4 mt-4 ml-4 border rounded">
+    <div class="col-6 mt-4 ml-4 border rounded">
         <h2>Clean your data</h2>
         <form action="{{ url_for('upload') }}" method="POST" enctype="multipart/form-data">
             <div class="input-group mb-3">
@@ -54,98 +54,161 @@
                 </div>
             </div>
 
-            <div class="m-2 p-2 border rounded">
-                <h4>Calculate BMI?</h4>
-                <p>
-                By default, growthcleanr will determine per-measurement inclusions/exclusions.
-                Choose "Yes" to calculate BMI values as well.
-                </p>
-                <div class="input-group" id="calculate-bmi">
-                    <div class="form-check form-check-inline">
-                        <input class="form-check-input" type="radio" name="calculate-bmi" id="calculate-bmi-yes" value="yes">
-                        <label class="form-check-label" for="calculate-bmi-yes">
-                            Yes
-                        </label>
+            <div class="row">
+                <div class="col m-3 p-2 border rounded">
+                    <h4>Options</h4>
+                    <p>
+                    This option changes how growthcleanr assesses measurements.
+                    </p>
+                    <div id="cleangrowth-behavior-options">
+                        <div class="form-check">
+                            <input class="form-check-input" type="checkbox" id="check-recover-unit-error" name="recover-unit-error">
+                            <label class="form-check-label" for="check-recover-unit-error">Recover unit errors</label>
+                        </div>
                     </div>
-                    <div class="form-check form-check-inline">
-                        <input class="form-check-input" type="radio" name="calculate-bmi" id="calculate-bmi-no" value="no" checked="checked">
-                        <label class="form-check-label" for="calculate-bmi-no">
-                            No
-                        </label>
+
+                    <hr />
+
+                    <p>
+                    These options produce additional CSV files that may be used for
+                    further analysis.
+                    </p>
+                    <div id="cleangrowth-output-options">
+                        <div class="form-check">
+                            <input class="form-check-input" type="checkbox" id="check-save-medians" name="save-medians">
+                            <label class="form-check-label" for="check-save-medians">Save medians to CSV</label>
+                        </div>
+                        <div class="form-check">
+                            <input class="form-check-input" type="checkbox" id="check-save-recenter" name="save-recenter">
+                            <label class="form-check-label" for="check-save-recenter">Save recentering data to CSV</label>
+                        </div>
+                    </div>
+
+                    <hr />
+
+                    <p>
+                    Advanced options
+                    <button type="button" id="toggle-cleangrowth-advanced-options" class="ml-2 btn btn-outline-secondary btn-sm">hide/show</button>
+                    </p>
+
+                    <div id="cleangrowth-advanced-options">
+                        <div class="form-check">
+                            <input class="form-check-input" type="checkbox" id="check-include-carryforward" name="include-carryforward">
+                            <label class="form-check-label" for="check-include-carryforward">Skip carried forward exclusions</label>
+                        </div>
+                        <div class="form-check pt-2">
+                            <label class="form-check-label" for="ewma-exp">EWMA exponent (default -1.5)</label>
+                            <br />
+                            <small class="ml-1">-3</small>
+                            <input id="ewma-exp" data-slider-id="ewma-exp-slider" name="ewma-exp" type="text"
+                                data-slider-min="-3" data-slider-max="-1" data-slider-step="0.1" data-slider-value="-1.5"
+                                />
+                            <small>-1</small>
+                        </div>
+                        <div class="form-check pt-2">
+                            <label class="form-check-label" for="error-load-mincount">Error load mincount (default 2)</label>
+                            <br />
+                            <small class="ml-2">1</small>
+                            <input id="error-load-mincount" data-slider-id="error-load-mincount-slider" name="error-load-mincount" type="text"
+                                data-slider-min="1" data-slider-max="3" data-slider-step="1" data-slider-value="2"
+                                />
+                            <small>3</small>
+                        </div>
+                        <div class="form-check pt-2">
+                            <label class="form-check-label" for="error-load-threshold">Error load threshold (default 0.5)</label>
+                            <br />
+                            <small>0.2</small>
+                            <input id="error-load-threshold" data-slider-id="error-load-threshold-slider" name="error-load-threshold" type="text"
+                                data-slider-min="0.2" data-slider-max="1" data-slider-step="0.1" data-slider-value="0.5"
+                                />
+                            <small>1</small>
+                        </div>
                     </div>
                 </div>
 
-                <div id="bmi-options" class="input-group m-2 p-2">
-                    <h5>Choose measurements for BMI calculation</h5>
-                    <div class="form-check">
-                        <input class="form-check-input" type="radio" name="bmi-radio" id="bmi-include" value="include" checked>
-                        <label class="form-check-label" for="bmi-include">
-                            Calculate only for measurements marked for inclusion
-                        </label>
+                <div class="col m-3 p-2 border rounded">
+                    <h4>Calculate BMI?</h4>
+                    <p>
+                    By default, growthcleanr will determine per-measurement inclusions/exclusions.
+                    Choose "Yes" to calculate BMI values as well.
+                    </p>
+                    <div class="input-group" id="calculate-bmi">
+                        <div class="form-check form-check-inline">
+                            <input class="form-check-input" type="radio" name="calculate-bmi" id="calculate-bmi-yes" value="yes">
+                            <label class="form-check-label" for="calculate-bmi-yes">
+                                Yes
+                            </label>
+                        </div>
+                        <div class="form-check form-check-inline">
+                            <input class="form-check-input" type="radio" name="calculate-bmi" id="calculate-bmi-no" value="no" checked="checked">
+                            <label class="form-check-label" for="calculate-bmi-no">
+                                No
+                            </label>
+                        </div>
                     </div>
-                    <div class="form-check">
-                        <input class="form-check-input" type="radio" name="bmi-radio" id="bmi-all" value="all">
-                        <label class="form-check-label" for="bmi-all">
-                            Calculate for all measurements
-                        </label>
-                    </div>
-                    <div class="form-check">
-                        <input class="form-check-input" type="radio" name="bmi-radio" id="bmi-choose" value="choose">
-                        <label class="form-check-label" for="bmi-choose">
-                            Select which measurements to include in BMI calculation
-                        </label>
 
-                        <div id="exclusion-options" class="form-check m-2 p-2 border rounded">
-                            <div class="form-check">
-                                <input class="form-check-input" type="checkbox" id="check-include" name="Include" checked>
-                                <label class="form-check-label" for="check-include">Include</label>
+                    <div id="bmi-options" class="input-group m-2 p-2">
+                        <h5>Choose measurements for BMI calculation</h5>
+                        <div class="form-check">
+                            <input class="form-check-input" type="radio" name="bmi-radio" id="bmi-include" value="include" checked>
+                            <label class="form-check-label" for="bmi-include">
+                                Calculate only for measurements marked for inclusion
+                            </label>
+                        </div>
+                        <div class="form-check">
+                            <input class="form-check-input" type="radio" name="bmi-radio" id="bmi-all" value="all">
+                            <label class="form-check-label" for="bmi-all">
+                                Calculate for all measurements
+                            </label>
+                        </div>
+                        <div class="form-check">
+                            <input class="form-check-input" type="radio" name="bmi-radio" id="bmi-choose" value="choose">
+                            <label class="form-check-label" for="bmi-choose">
+                                Select which measurements to include in BMI calculation
+                            </label>
+
+                            <div id="exclusion-options" class="form-check m-2 p-2 border rounded">
+                                <div class="form-check">
+                                    <input class="form-check-input" type="checkbox" id="check-include" name="Include" checked>
+                                    <label class="form-check-label" for="check-include">Include</label>
+                                </div>
+
+                                <div class="form-check">
+                                    <input class="form-check-input" type="checkbox" id="check-exclude-carried-forward" name="Exclude-Carried-Forward">
+                                    <label class="form-check-label" for="check-exclude-carried-forward">Exclude-Carried-Forward</label>
+                                </div>
+
+                                <div class="form-check">
+                                    <input class="form-check-input" type="checkbox" id="check-exclude-duplicate" name="Exclude-Duplicate">
+                                    <label class="form-check-label" for="check-exclude-duplicate">Exclude-Duplicate</label>
+                                </div>
+
+                                <div class="form-check">
+                                    <input class="form-check-input" type="checkbox" id="check-exclude-too-many-errors" name="Exclude-Too-Many-Errors">
+                                    <label class="form-check-label" for="check-exclude-too-many-errors">Exclude-Too-Many-Errors</label>
+                                </div>
+
+                                <div class="form-check">
+                                    <input class="form-check-input" type="checkbox" id="check-exclude-min-height-change" name="Exclude-Min-Height-Change">
+                                    <label class="form-check-label" for="check-exclude-min-height-change">Exclude-Min-Height-Change</label>
+                                </div>
+
+                                <div class="form-check">
+                                    <input class="form-check-input" type="checkbox" id="check-exclude-max-height-change" name="Exclude-Max-Height-Change">
+                                    <label class="form-check-label" for="check-exclude-max-height-change">Exclude-Max-Height-Change</label>
+                                </div>
+
+                                <div class="form-check">
+                                    <input class="form-check-input" type="checkbox" id="check-exclude-min-weight-change" name="Exclude-Min-Weight-Change">
+                                    <label class="form-check-label" for="check-exclude-min-weight-change">Exclude-Min-Weight-Change</label>
+                                </div>
+
+                                <div class="form-check">
+                                    <input class="form-check-input" type="checkbox" id="check-exclude-max-weight-change" name="Exclude-Max-Weight-Change">
+                                    <label class="form-check-label" for="check-exclude-max-weight-change">Exclude-Max-Weight-Change</label>
+                                </div>
+
                             </div>
-
-                            <div class="form-check">
-                                <input class="form-check-input" type="checkbox" id="check-exclude-carried-forward" name="Exclude-Carried-Forward">
-                                <label class="form-check-label" for="check-exclude-carried-forward">Exclude-Carried-Forward</label>
-                            </div>
-
-                            <div class="form-check">
-                                <input class="form-check-input" type="checkbox" id="check-exclude-duplicate" name="Exclude-Duplicate">
-                                <label class="form-check-label" for="check-exclude-duplicate">Exclude-Duplicate</label>
-                            </div>
-
-                            <div class="form-check">
-                                <input class="form-check-input" type="checkbox" id="check-exclude-ewma-extreme" name="Exclude-EWMA-Extreme">
-                                <label class="form-check-label" for="check-exclude-ewma-extreme">Exclude-EWMA-Extreme</label>
-                            </div>
-
-                            <div class="form-check">
-                                <input class="form-check-input" type="checkbox" id="check-exclude-sd-cutoff" name="Exclude-SD-Cutoff">
-                                <label class="form-check-label" for="check-exclude-sd-cutoff">Exclude-SD-Cutoff</label>
-                            </div>
-
-                            <div class="form-check">
-                                <input class="form-check-input" type="checkbox" id="check-exclude-too-many-errors" name="Exclude-Too-Many-Errors">
-                                <label class="form-check-label" for="check-exclude-too-many-errors">Exclude-Too-Many-Errors</label>
-                            </div>
-
-                            <div class="form-check">
-                                <input class="form-check-input" type="checkbox" id="check-exclude-min-height-change" name="Exclude-Min-Height-Change">
-                                <label class="form-check-label" for="check-exclude-min-height-change">Exclude-Min-Height-Change</label>
-                            </div>
-
-                            <div class="form-check">
-                                <input class="form-check-input" type="checkbox" id="check-exclude-max-height-change" name="Exclude-Max-Height-Change">
-                                <label class="form-check-label" for="check-exclude-max-height-change">Exclude-Max-Height-Change</label>
-                            </div>
-
-                            <div class="form-check">
-                                <input class="form-check-input" type="checkbox" id="check-exclude-min-weight-change" name="Exclude-Min-Weight-Change">
-                                <label class="form-check-label" for="check-exclude-min-weight-change">Exclude-Min-Weight-Change</label>
-                            </div>
-
-                            <div class="form-check">
-                                <input class="form-check-input" type="checkbox" id="check-exclude-max-weight-change" name="Exclude-Max-Weight-Change">
-                                <label class="form-check-label" for="check-exclude-max-weight-change">Exclude-Max-Weight-Change</label>
-                            </div>
-
                         </div>
                     </div>
                 </div>
@@ -157,8 +220,8 @@
         </form>
     </div>
 
-    <div class="col-4 mt-4 ml-4">
-        <h3>Refresh this page</h3>
+    <div class="col-2 mt-4 ml-1">
+        <h4>Refresh this page</h4>
 
         <p>
         growthcleanr can take some time to process. The table below will be updated
@@ -177,9 +240,9 @@
             <thead>
                 <tr>
                     <th class="w-30 text-left" scope="col">Upload date (GMT)</th>
-                    <th class="w-30 text-left" scope="col">Dataset</th>
+                    <th class="w-40 text-left" scope="col">Dataset</th>
                     <th class="w-10 text-left" scope="col">Status</th>
-                    <th class="w-30 text-left" scope="col">Results</th>
+                    <th class="w-40 text-left" scope="col">Results</th>
                 </tr>
             </thead>
             <tbody>
@@ -195,14 +258,24 @@
                             <span class="badge badge-success">Done</span>
                         {% endif %}
                     </td>
-                    <td class="text-nowrap">
+                    <td class="text-nowrap align-top">
                         {% if d.cleaned_fname != '' %}
                         <a href="{{ url_for('cleaned_file', cleaned_fname=d.cleaned_fname) }}">{{ d.cleaned_fname[17:] }}</a>
                         {% endif %}
 
                         {% if d.bmi_fname and d.bmi_fname != '' %}
-                        |
+                        <br />
                         <a href="{{ url_for('cleaned_file', cleaned_fname=d.bmi_fname) }}">{{ d.bmi_fname[17:] }}</a>
+                        {% endif %}
+
+                        {% if d.medians_fname and d.medians_fname != '' %}
+                        <br />
+                        <a href="{{ url_for('cleaned_file', cleaned_fname=d.medians_fname) }}">{{ d.medians_fname[17:] }}</a>
+                        {% endif %}
+
+                        {% if d.recenter_fname and d.recenter_fname != '' %}
+                        <br />
+                        <a href="{{ url_for('cleaned_file', cleaned_fname=d.recenter_fname) }}">{{ d.recenter_fname[17:] }}</a>
                         {% endif %}
                     </td>
                 </tr>
@@ -222,6 +295,28 @@ $(document).ready(function(){
         var fname = $(this).val();
         fname = fname.replace("C:\\fakepath\\", "");
         $(this).next('.custom-file-label').html(fname);
+    });
+
+    $('#toggle-cleangrowth-advanced-options').on('click', function() {
+        $('#cleangrowth-advanced-options').toggle('slow');
+    });
+
+    $('#ewma-exp').slider({
+        formatter: function(value) {
+            return value;
+        }
+    });
+
+    $('#error-load-mincount').slider({
+        formatter: function(value) {
+            return value;
+        }
+    });
+
+    $('#error-load-threshold').slider({
+        formatter: function(value) {
+            return value;
+        }
     });
 
     $('input[type=radio][name=calculate-bmi]').change(function () {
@@ -245,12 +340,23 @@ $(document).ready(function(){
 
 {% block style_extra %}
 <style>
-#inputGroupFile .label {
-    color: #333333;
+#inputGroupFile {
+    color: #333;
 }
 
-#bmi-options, #exclusion-options {
+#cleangrowth-advanced-options, #bmi-options, #exclusion-options {
     display: none;
+}
+
+.slider-handle {
+	background-color: #aaa;
+    background-image: none;
+    width: 10px;
+}
+
+.slider-selection, .slider-track-low, .slider-track-high {
+    background: #eee;
+    box-shadow: none;
 }
 </style>
 {% endblock %}

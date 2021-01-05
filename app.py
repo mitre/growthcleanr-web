@@ -1,6 +1,7 @@
 #!/usr/bin/env python3
 
 import datetime
+import glob
 import os
 from pathlib import Path
 import subprocess
@@ -9,8 +10,8 @@ from flask import (
     Flask,
     flash,
     redirect,
-    request,
     render_template,
+    request,
     send_from_directory,
     url_for,
 )
@@ -61,7 +62,7 @@ def read_state():
             "dt": dt.strftime("%Y-%m-%d %H:%M:%S"),
             "status": status,
         }
-        if type(status) == type([]):
+        if isinstance(status, list):
             # This was a pipeline w/bmi
             if status[0] is None:
                 # cleaning is not yet done
@@ -72,6 +73,7 @@ def read_state():
                 # TODO: does pathlib make this simpler?
                 cleaned_fname = str(status[0])[len(RESULT_DIR) + 1 :]
                 datasets[job]["cleaned_fname"] = cleaned_fname
+
             if status[2] is None:
                 # bmi is not yet done
                 datasets[job]["bmi_fname"] = ""
@@ -84,6 +86,21 @@ def read_state():
             # TODO: verify, can this happen?
             cleaned_fname = str(status)[len(RESULT_DIR) + 1 :]
             datasets[job]["cleaned_fname"] = cleaned_fname
+
+        # Check for additional files whether it was a pipeline or not
+        # TODO: not particularly elegant
+        # 12 for "-cleaned.csv"
+        if datasets[job]["cleaned_fname"] != "":
+            base_fname = cleaned_fname[:-12]
+            extra_files = glob.glob(str(Path(RESULT_DIR) / f"{base_fname}-*.csv"))
+            datasets[job]["extra_files"] = extra_files
+            for extra_file in extra_files:
+                if extra_file.endswith("-medians.csv"):
+                    medians_fname = f"{base_fname}-medians.csv"
+                    datasets[job]["medians_fname"] = medians_fname
+                elif extra_file.endswith("-recenter.csv"):
+                    recenter_fname = f"{base_fname}-recenter.csv"
+                    datasets[job]["recenter_fname"] = recenter_fname
 
     # Return files w/status, associated results ordered by date/time
     return datasets
@@ -113,22 +130,40 @@ def upload():
             file.save(Path(app.config["DATASET_DIR"]) / dated_fname)
             flash("Dataset uploaded successfully.")
 
+            cleangrowth_options = {}
+
+            for o in [
+                "include-carryforward",
+                "recover-unit-error",
+                "save-medians",
+                "save-recenter",
+            ]:
+                if request.form.get(o, None):
+                    cleangrowth_options[o] = True
+                else:
+                    cleangrowth_options[o] = False
+
+            for o, v in [
+                ["ewma-exp", -1.5],
+                ["error-load-mincount", 2],
+                ["error-load-threshold", 0.5],
+            ]:
+                cleangrowth_options[o] = request.form.get(o, v)
+
             if request.form.get("calculate-bmi", "no") == "yes":
-                options = {}
+                bmi_options = {}
                 bmi_radio = request.form.get("bmi-radio", "include")
                 if bmi_radio == "include":
                     # no further options to handle, use default longwide()
                     pass
                 elif bmi_radio == "all":
-                    options["include_all"] = True
+                    bmi_options["include_all"] = True
                 elif bmi_radio == "choose":
                     inclusion_types = []
                     for t in [
                         "Include",
                         "Exclude-Carried-Forward",
                         "Exclude-Duplicate",
-                        "Exclude-EWMA-Extreme",
-                        "Exclude-SD-Cutoff",
                         "Exclude-Too-Many-Errors",
                         "Exclude-Min-Height-Change",
                         "Exclude-Max-Height-Change",
@@ -137,18 +172,18 @@ def upload():
                     ]:
                         if request.form.get(t, None):
                             inclusion_types.append(t)
-                    options["inclusion_types"] = inclusion_types
+                    bmi_options["inclusion_types"] = inclusion_types
 
                 # Start a queue pipeline
                 pipeline = (
-                    r_cleangrowth.s(dated_fname)
-                    .then(r_longwide, options=options)
+                    r_cleangrowth.s(dated_fname, options=cleangrowth_options)
+                    .then(r_longwide, options=bmi_options)
                     .then(r_ext_bmiz)
                 )
             else:
                 # Does not require a pipeline, but use one for consistency
                 # of result
-                pipeline = r_cleangrowth.s(dated_fname)
+                pipeline = r_cleangrowth.s(dated_fname, options=cleangrowth_options)
             jobs[dated_fname] = huey_queue.enqueue(pipeline)
         else:
             flash("Dataset name should end in '.csv'")
