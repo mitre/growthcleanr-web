@@ -2,8 +2,6 @@
 
 import datetime
 import glob
-import logging
-from logging.handlers import RotatingFileHandler
 import os
 from pathlib import Path
 import subprocess
@@ -22,8 +20,6 @@ from werkzeug.utils import secure_filename
 from queue import huey_queue
 from tasks import r_cleangrowth, r_longwide, r_ext_bmiz
 
-
-logging.basicConfig(level=logging.DEBUG)
 
 # Each execution of each instance will get its own new key
 SECRET_KEY = os.urandom(16)
@@ -150,7 +146,7 @@ def upload():
             for o, v in [
                 ["ewma-exp", -1.5],
                 ["error-load-mincount", 2],
-                ["error-load-threshold", 0.5]
+                ["error-load-threshold", 0.5],
             ]:
                 cleangrowth_options[o] = request.form.get(o, v)
 
@@ -200,10 +196,6 @@ def cleaned_file(cleaned_fname):
 
 
 if __name__ == "__main__":
-    handler = RotatingFileHandler("gcweb.log", maxBytes=100000, backupCount=1)
-    handler.setLevel(logging.INFO)
-    app.logger.addHandler(handler)
-
     # Initialize dirs if not yet present
     Path(DATASET_DIR).mkdir(parents=True, exist_ok=True)
     Path(RESULT_DIR).mkdir(parents=True, exist_ok=True)
